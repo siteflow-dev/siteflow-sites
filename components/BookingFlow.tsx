@@ -613,6 +613,7 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
     service: null, professional: null, date: null, time: null,
   })
   const [professionals, setProfessionals] = useState<Array<{ id: string; name: string; initials: string; role: string; specialties: string[] }>>([])
+  const [dbServices, setDbServices] = useState<Array<{ id: string; slug: string }>>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -635,6 +636,19 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
       }
     }
     fetchProfessionals()
+
+    async function fetchServices() {
+      try {
+        const sb = getSupabaseClient()
+        const { data } = await sb
+          .from('services')
+          .select('id, slug')
+          .eq('client_id', clientId)
+          .eq('active', true)
+        if (data && data.length > 0) setDbServices(data)
+      } catch { /* fallback silencioso */ }
+    }
+    fetchServices()
   }, [clientId])
 
   const update = (k: keyof BookingState, v: any) => setState(prev => ({ ...prev, [k]: v }))
@@ -664,7 +678,7 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
         client_id:       clientId,
         client_name:     state.clientName,
         client_phone:    state.clientPhone,
-        service_id:      state.service.id,
+        service_id:      dbServices.find(s => s.slug === state.service?.slug || s.slug === state.service?.id)?.id ?? state.service.id,
         professional_id: state.professional.id,
         date:            state.date,
         time:            state.time + ':00',
