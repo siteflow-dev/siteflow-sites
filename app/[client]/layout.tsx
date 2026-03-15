@@ -29,26 +29,33 @@ export default async function ClientLayout({ children, params }: ClientLayoutPro
 
   const googleFontsUrl = `https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap`
 
+  const cssVars = `
+    :root {
+      --primary: ${config.design.primaryColor};
+      --accent:  ${config.design.accentColor};
+      --radius:  ${config.design.borderRadius};
+    }
+  `
+
+  const schemaOrg = config.features.seoLocalBusiness ? JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: config.businessName,
+    description: config.seo.description,
+    telephone: `+${config.contact.whatsapp}`,
+  }) : null
+
   return (
     <>
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link href={googleFontsUrl} rel="stylesheet" />
-      <style dangerouslySetInnerHTML={{ __html: `
-        :root {
-          --primary: ${config.design.primaryColor};
-          --accent:  ${config.design.accentColor};
-          --radius:  ${config.design.borderRadius};
-        }
-      `}} />
-      {config.features.seoLocalBusiness && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'LocalBusiness',
-          name: config.businessName,
-          description: config.seo.description,
-          telephone: `+${config.contact.whatsapp}`,
-        })}} />
+      <style>{cssVars}</style>
+      {schemaOrg && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: schemaOrg }}
+        />
       )}
       {children}
     </>
