@@ -149,12 +149,10 @@ function StepIndicator({ step }: { step: number }) {
 function StepDados({ state, onChange, onNext }: {
   state: BookingState
   onChange: (k: keyof BookingState, v: string) => void
-  onNext: () => void
+  onNext: (name?: string, phone?: string) => void
 }) {
   const handleSocial = (name: string, phone: string) => {
-    onChange('clientName', name)
-    onChange('clientPhone', phone)
-    setTimeout(onNext, 400)
+    onNext(name, phone)
   }
 
   return (
@@ -207,7 +205,7 @@ function StepDados({ state, onChange, onNext }: {
       ))}
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.75rem' }}>
-        <button onClick={onNext} style={S.btnPrimary}>Continuar →</button>
+        <button onClick={() => onNext()} style={S.btnPrimary}>Continuar →</button>
       </div>
     </div>
   )
@@ -653,12 +651,14 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
 
   const update = (k: keyof BookingState, v: any) => setState(prev => ({ ...prev, [k]: v }))
 
-  const goNext = () => {
-    if (state.step === 0 && (!state.clientName.trim() || !state.clientPhone.trim())) {
+  const goNext = (overrideName?: string, overridePhone?: string) => {
+    const name = overrideName ?? state.clientName
+    const phone = overridePhone ?? state.clientPhone
+    if (state.step === 0 && (!name.trim() || !phone.trim())) {
       setError('Preencha seu nome e WhatsApp para continuar'); return
     }
     setError(null)
-    setState(prev => ({ ...prev, step: prev.step + 1 }))
+    setState(prev => ({ ...prev, step: prev.step + 1, clientName: name, clientPhone: phone }))
     document.getElementById('agendamento')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
