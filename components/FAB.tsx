@@ -1,14 +1,9 @@
 'use client'
-
 import { useEffect } from 'react'
 
-interface FABProps {
-  whatsapp: string
-  bookingEnabled: boolean
-}
+interface FABProps { whatsapp: string; bookingEnabled: boolean }
 
 export function FAB({ bookingEnabled }: FABProps) {
-  // Scroll reveal observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
@@ -21,28 +16,12 @@ export function FAB({ bookingEnabled }: FABProps) {
   if (!bookingEnabled) return null
 
   return (
-    <a href="#agendamento" style={{
-      position: 'fixed', bottom: 'clamp(1.5rem, 3vw, 2rem)', right: 'clamp(1.5rem, 3vw, 2rem)',
-      zIndex: 999,
-      background: 'linear-gradient(135deg, var(--primary-light), var(--rose))',
-      color: 'white', border: 'none', borderRadius: 'var(--radius-full)',
-      padding: '0.875rem 1.5rem',
-      fontFamily: 'var(--font-body)', fontSize: '0.875rem', fontWeight: 500,
-      cursor: 'pointer', boxShadow: '0 4px 24px rgba(147,51,234,0.45)',
-      display: 'flex', alignItems: 'center', gap: '0.5rem',
-      transition: 'var(--transition)', textDecoration: 'none',
-      WebkitTapHighlightColor: 'transparent',
-      minHeight: 'var(--btn-height)',
-    }}
-    onMouseEnter={e => {
-      e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'
-      e.currentTarget.style.boxShadow = '0 8px 32px rgba(147,51,234,0.55)'
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.transform = ''
-      e.currentTarget.style.boxShadow = '0 4px 24px rgba(147,51,234,0.45)'
-    }}>
-      ✦ Agendar agora
-    </a>
+    <>
+      <style>{`
+        .sf-fab { position:fixed;bottom:clamp(1.5rem,3vw,2rem);right:clamp(1.5rem,3vw,2rem);z-index:999;background:linear-gradient(135deg,var(--primary-light),var(--rose));color:white;border:none;border-radius:var(--radius-full);padding:0.875rem 1.5rem;font-family:var(--font-body);font-size:0.875rem;font-weight:500;cursor:pointer;box-shadow:0 4px 24px rgba(147,51,234,0.45);display:flex;align-items:center;gap:0.5rem;transition:all 0.3s;text-decoration:none;-webkit-tap-highlight-color:transparent;min-height:var(--btn-height); }
+        .sf-fab:hover { transform:translateY(-3px) scale(1.02);box-shadow:0 8px 32px rgba(147,51,234,0.55); }
+      `}</style>
+      <a href="#agendamento" className="sf-fab">✦ Agendar agora</a>
+    </>
   )
 }
