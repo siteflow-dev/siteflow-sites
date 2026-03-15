@@ -19,7 +19,7 @@ interface BookingState {
   step: number
   clientName: string
   clientPhone: string
-  service: Service | null
+  services: Service[]
   professional: { id: string; name: string; initials: string; role: string } | null
   date: string | null
   time: string | null
@@ -195,10 +195,10 @@ function StepDados({ state, onChange, onNext }: {
 
 // ─── STEP 1: SERVIÇO ─────────────────────────────────────────────────────────
 
-function StepServico({ services, selected, onSelect, onBack, onNext }: {
+function StepServico({ services, selected, onToggle, onBack, onNext }: {
   services: Service[]
-  selected: Service | null
-  onSelect: (s: Service) => void
+  selected: Service[]
+  onToggle: (s: Service) => void
   onBack: () => void
   onNext: () => void
 }) {
@@ -212,9 +212,9 @@ function StepServico({ services, selected, onSelect, onBack, onNext }: {
         gap: '0.75rem', marginBottom: '1.25rem',
       }}>
         {services.filter(s => s.active).map(svc => (
-          <div key={svc.id} onClick={() => onSelect(svc)} style={{
-            border: `2px solid ${selected?.id === svc.id ? 'var(--primary-light)' : 'var(--border-color)'}`,
-            background: selected?.id === svc.id ? 'var(--primary-xlight)' : 'white',
+          <div key={svc.id} onClick={() => onToggle(svc)} style={{
+            border: `2px solid ${selected.some(s => s.id === svc.id) ? 'var(--primary-light)' : 'var(--border-color)'}`,
+            background: selected.some(s => s.id === svc.id) ? 'var(--primary-xlight)' : 'white',
             borderRadius: 'var(--radius-sm)', padding: '1rem',
             cursor: 'pointer', transition: 'all 0.3s ease',
             WebkitTapHighlightColor: 'transparent',
@@ -226,18 +226,26 @@ function StepServico({ services, selected, onSelect, onBack, onNext }: {
         ))}
       </div>
 
-      {selected && (
+      {selected.length > 0 && (
         <div style={{ background: 'var(--bg-soft)', borderRadius: 'var(--radius-sm)', padding: '1rem', marginBottom: '1rem', fontSize: '0.85rem' }}>
-          <strong>{selected.emoji} {selected.name}</strong>
-          <div style={{ color: 'var(--text-muted)', marginTop: '0.3rem', fontSize: '0.8rem' }}>
-            Duração: {selected.durationLabel} · {selected.description}
+          <div style={{ fontWeight: 600, marginBottom: '0.4rem', color: 'var(--primary)' }}>
+            {selected.length} serviço{selected.length > 1 ? 's' : ''} selecionado{selected.length > 1 ? 's' : ''}
+          </div>
+          {selected.map(s => (
+            <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.2rem 0', fontSize: '0.8rem' }}>
+              <span>{s.emoji} {s.name}</span>
+              <span style={{ color: 'var(--text-muted)' }}>{s.durationLabel}</span>
+            </div>
+          ))}
+          <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', paddingTop: '0.5rem', fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 600 }}>
+            Total estimado: {selected.reduce((acc, s) => acc + s.durationMin, 0)} min
           </div>
         </div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.75rem', gap: '1rem' }}>
         <button onClick={onBack} style={S.btnBack}>← Voltar</button>
-        <button onClick={onNext} disabled={!selected} style={{ ...S.btnPrimary, opacity: selected ? 1 : 0.5, cursor: selected ? 'pointer' : 'not-allowed' }}>
+        <button onClick={onNext} disabled={selected.length === 0} style={{ ...S.btnPrimary, opacity: selected.length > 0 ? 1 : 0.5, cursor: selected.length > 0 ? 'pointer' : 'not-allowed' }}>
           Continuar →
         </button>
       </div>
@@ -462,8 +470,8 @@ function StepConfirmacao({ state, onBack, onSubmit, submitting }: {
   const rows = [
     { label: 'Nome', val: state.clientName },
     { label: 'WhatsApp', val: state.clientPhone },
-    { label: 'Serviço', val: `${state.service?.emoji} ${state.service?.name}` },
-    { label: 'Duração', val: state.service?.durationLabel },
+    { label: 'Serviço(s)', val: state.services.map(s => `${s.emoji} ${s.name}`).join(' + ') },
+    { label: 'Duração total', val: `${state.services.reduce((a,s) => a+s.durationMin,0)} min` },
     { label: 'Profissional', val: state.professional?.name },
     { label: 'Data', val: dateStr },
     { label: 'Horário', val: state.time },
@@ -518,7 +526,7 @@ function StepSucesso({ state, whatsapp, onReset }: {
   const waMessage = encodeURIComponent(
     `Olá! Acabei de agendar pelo site:\n\n` +
     `📅 ${dateStr} às ${state.time}\n` +
-    `💇 ${state.service?.name}\n` +
+    `💇 ${state.services.map(s => s.name).join(' + ')}\n` +
     `👩 ${state.professional?.name}\n\n` +
     `Aguardo confirmação! 😊`
   )
@@ -544,7 +552,7 @@ function StepSucesso({ state, whatsapp, onReset }: {
       <div style={{ background: 'var(--bg-soft)', borderRadius: 'var(--radius-sm)', padding: '1rem', maxWidth: '320px', margin: '0 auto 1.5rem', fontSize: '0.875rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--border-color)' }}>
           <span style={{ color: 'var(--text-muted)' }}>Serviço</span>
-          <span style={{ fontWeight: 500 }}>{state.service?.emoji} {state.service?.name}</span>
+          <span style={{ fontWeight: 500 }}>{state.services.map(s => `${s.emoji} ${s.name}`).join(' + ')}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.3rem 0', borderBottom: '1px solid var(--border-color)' }}>
           <span style={{ color: 'var(--text-muted)' }}>Data e hora</span>
@@ -590,7 +598,7 @@ function StepSucesso({ state, whatsapp, onReset }: {
 export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) {
   const [state, setState] = useState<BookingState>({
     step: 0, clientName: '', clientPhone: '',
-    service: null, professional: null, date: null, time: null,
+    services: [], professional: null, date: null, time: null,
   })
   const [professionals, setProfessionals] = useState<Array<{ id: string; name: string; initials: string; role: string; specialties: string[] }>>([])
   const [dbServices, setDbServices] = useState<Array<{ id: string; slug: string }>>([])
@@ -651,7 +659,7 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
   }
 
   const submit = async () => {
-    if (!state.service || !state.professional || !state.date || !state.time) return
+    if (!state.services.length || !state.professional || !state.date || !state.time) return
     setSubmitting(true)
     setError(null)
     try {
@@ -660,7 +668,8 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
         client_id:       clientId,
         client_name:     state.clientName,
         client_phone:    state.clientPhone,
-        service_id:      dbServices.find(s => s.slug === state.service?.slug || s.slug === state.service?.id)?.id ?? state.service.id,
+        service_id:      dbServices.find(s => s.slug === state.services[0]?.slug || s.slug === state.services[0]?.id)?.id ?? state.services[0]?.id,
+        notes:           state.services.length > 1 ? state.services.map(s => s.name).join(' + ') : state.services[0]?.name,
         professional_id: state.professional.id,
         date:            state.date,
         time:            state.time + ':00',
@@ -677,7 +686,7 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
   }
 
   const reset = () => {
-    setState({ step: 0, clientName: '', clientPhone: '', service: null, professional: null, date: null, time: null })
+    setState({ step: 0, clientName: '', clientPhone: '', services: [], professional: null, date: null, time: null })
     setError(null)
   }
 
@@ -693,7 +702,10 @@ export function BookingFlow({ clientId, whatsapp, services }: BookingFlowProps) 
 
       <div style={S.panel}>
         {state.step === 0 && <StepDados state={state} onChange={update} onNext={goNext} />}
-        {state.step === 1 && <StepServico services={services} selected={state.service} onSelect={s => update('service', s)} onBack={goBack} onNext={goNext} />}
+        {state.step === 1 && <StepServico services={services} selected={state.services} onToggle={s => {
+          const exists = state.services.some(x => x.id === s.id)
+          update('services', exists ? state.services.filter(x => x.id !== s.id) : [...state.services, s])
+        }} onBack={goBack} onNext={goNext} />}
         {state.step === 2 && <StepProfissional professionals={professionals} selected={state.professional} onSelect={p => update('professional', p)} onBack={goBack} onNext={goNext} />}
         {state.step === 3 && <StepHorario clientId={clientId} professional={state.professional} selectedDate={state.date} selectedTime={state.time} onSelectDate={d => update('date', d)} onSelectTime={t => update('time', t)} onBack={goBack} onNext={goNext} />}
         {state.step === 4 && <StepConfirmacao state={state} onBack={goBack} onSubmit={submit} submitting={submitting} />}

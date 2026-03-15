@@ -130,8 +130,8 @@ export function Hero({ config, business }: HeroProps) {
             )}
           </div>
 
-          {/* Visual side — hidden on mobile via CSS */}
-          <div className="sf-hero-visual">
+          {/* Visual side — hidden on mobile via CSS, client-only to avoid hydration */}
+          <div className="sf-hero-visual" suppressHydrationWarning>
             <div style={{
               width: '380px', height: '380px', borderRadius: '50%',
               background: 'linear-gradient(135deg, rgba(107,33,168,0.4), rgba(199,125,186,0.3))',
@@ -149,7 +149,7 @@ export function Hero({ config, business }: HeroProps) {
               }}>✦</div>
 
               {/* Float cards */}
-              <div className="float-1" style={{
+              <div className="float-1" suppressHydrationWarning style={{
                 position: 'absolute', top: '10%', right: '-5%',
                 background: 'rgba(13,13,13,0.85)', backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(212,175,138,0.25)',
@@ -160,7 +160,7 @@ export function Hero({ config, business }: HeroProps) {
                 <div style={{ fontWeight: 500, color: 'var(--accent)' }}>Hoje, 14h30</div>
               </div>
 
-              <div className="float-2" style={{
+              <div className="float-2" suppressHydrationWarning style={{
                 position: 'absolute', bottom: '15%', left: '-8%',
                 background: 'rgba(13,13,13,0.85)', backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(212,175,138,0.25)',
@@ -171,7 +171,7 @@ export function Hero({ config, business }: HeroProps) {
                 <div style={{ fontWeight: 500, color: 'var(--accent)' }}>⭐ 5.0 · 128 avaliações</div>
               </div>
 
-              <div className="float-3" style={{
+              <div className="float-3" suppressHydrationWarning style={{
                 position: 'absolute', top: '50%', right: '-12%',
                 background: 'rgba(13,13,13,0.85)', backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(212,175,138,0.25)',
