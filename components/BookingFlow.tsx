@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { getSupabaseClient } from '@/lib/supabase'
 import type { Service, Professional } from '@/types'
 
+
+function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 2) return digits.length ? `(${digits}` : ''
+  if (digits.length <= 7) return `(${digits.slice(0,2)}) ${digits.slice(2)}`
+  if (digits.length <= 11) return `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`
+  return value
+}
+
 // ─── TIPOS ──────────────────────────────────────────────────────────────────
 
 interface BookingState {
@@ -101,6 +110,9 @@ const S = {
 
 function StepIndicator({ step }: { step: number }) {
   const steps = ['Dados', 'Serviço', 'Profissional', 'Horário', 'Confirmar']
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const isMobile = mounted && window.innerWidth < 480
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2.5rem' }}>
       {steps.map((label, i) => (
@@ -120,12 +132,11 @@ function StepIndicator({ step }: { step: number }) {
             }}>
               {i < step ? '✓' : i + 1}
             </div>
-            <span style={{
+            <span className="sf-step-label" style={{
               fontSize: '0.65rem',
               color: i === step ? 'var(--primary-light)' : 'var(--text-muted)',
               fontWeight: i === step ? 600 : 400,
               textAlign: 'center',
-              display: typeof window !== 'undefined' && window.innerWidth < 480 ? 'none' : 'block',
             }}>
               {label}
             </span>
@@ -134,7 +145,7 @@ function StepIndicator({ step }: { step: number }) {
             <div style={{
               height: '2px', width: 'clamp(20px, 5vw, 60px)',
               background: i < step ? 'var(--primary-dark)' : 'var(--border-color)',
-              marginBottom: typeof window !== 'undefined' && window.innerWidth < 480 ? 0 : '20px',
+              marginBottom: '20px',
               transition: 'background 0.3s ease', flexShrink: 0,
             }} />
           )}
@@ -196,7 +207,7 @@ function StepDados({ state, onChange, onNext }: {
             type={field.type}
             placeholder={field.placeholder}
             value={state[field.key] as string}
-            onChange={e => onChange(field.key, e.target.value)}
+            onChange={e => onChange(field.key, field.key === 'clientPhone' ? maskPhone(e.target.value) : e.target.value)}
             style={S.input}
             onFocus={e => e.target.style.borderColor = 'var(--primary-light)'}
             onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
