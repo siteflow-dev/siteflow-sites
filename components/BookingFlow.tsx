@@ -180,8 +180,8 @@ function StepDados({ state, onChange, onNext }: {
             value={state[field.key] as string}
             onChange={e => onChange(field.key, field.key === 'clientPhone' ? maskPhone(e.target.value) : e.target.value)}
             style={S.input}
-            onFocus={e => e.target.style.borderColor = 'var(--primary-light)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border-color)'}
+            onFocus={e => { e.target.style.borderColor = 'var(--primary-light)' }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border-color)' }}
           />
         </div>
       ))}
