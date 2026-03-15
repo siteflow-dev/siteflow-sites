@@ -769,3 +769,42 @@ img, video, svg { max-width: 100%; height: auto; display: block; }
 /* BookingFlow — step label responsive */
 .sf-step-label { display: block; }
 @media (max-width: 479px) { .sf-step-label { display: none; } }
+
+/* ── HOVER EFFECTS (CSS puro — elimina onMouseEnter/Leave do React) ── */
+
+/* Services cards */
+.sf-svc-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.sf-svc-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-soft); }
+.sf-svc-card .svc-bar { opacity: 0; transition: opacity 0.3s ease; }
+.sf-svc-card:hover .svc-bar { opacity: 1; }
+
+/* Team cards */
+.sf-team-card { transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease; }
+.sf-team-card:hover { transform: translateY(-4px); background: rgba(107,33,168,0.15) !important; border-color: rgba(199,125,186,0.4) !important; }
+
+/* About pillars */
+.sf-pillar-card { transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease; }
+.sf-pillar-card:hover { transform: translateY(-2px); background: rgba(107,33,168,0.15) !important; border-color: rgba(212,175,138,0.35) !important; }
+
+/* Gallery items */
+.sf-gallery-item { transition: transform 0.3s ease; }
+.sf-gallery-item:hover { transform: scale(1.02); }
+.sf-gallery-item .gal-overlay { opacity: 0; transition: opacity 0.3s ease; }
+.sf-gallery-item:hover .gal-overlay { opacity: 1; }
+
+/* Testimonial cards */
+.sf-dep-card { transition: background 0.3s ease, border-color 0.3s ease; }
+.sf-dep-card:hover { background: rgba(107,33,168,0.12) !important; border-color: rgba(199,125,186,0.3) !important; }
+
+/* Navbar links */
+.sf-nav-link { transition: color 0.3s ease; color: rgba(255,255,255,0.75); }
+.sf-nav-link:hover { color: var(--accent) !important; }
+
+/* FAB */
+.sf-fab:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 8px 32px rgba(147,51,234,0.55) !important; }
+
+/* Booking service cards */
+.sf-booking-svc { transition: border-color 0.2s ease, background 0.2s ease; }
+
+/* Buttons */
+.sf-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(147,51,234,0.4); }

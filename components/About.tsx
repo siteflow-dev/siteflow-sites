@@ -61,16 +61,6 @@ export function About({ business }: AboutProps) {
                 padding: '1.5rem',
                 transition: 'var(--transition)',
                 cursor: 'default',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(107,33,168,0.15)'
-                e.currentTarget.style.borderColor = 'rgba(212,175,138,0.35)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                e.currentTarget.style.borderColor = 'rgba(212,175,138,0.15)'
-                e.currentTarget.style.transform = ''
               }}>
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '10px',

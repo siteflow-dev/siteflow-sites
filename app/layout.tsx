@@ -3,17 +3,13 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'SiteFlow',
-  description: 'Serviço Gerenciado de Desenvolvimento de Sites para Negócios Locais',
+  description: 'Sites gerenciados para negócios locais',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body>{children}</body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   )
 }
