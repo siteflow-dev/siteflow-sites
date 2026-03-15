@@ -765,3 +765,7 @@ svg {
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body { overflow-x: hidden; max-width: 100vw; font-family: var(--font-body); }
 img, video, svg { max-width: 100%; height: auto; display: block; }
+
+/* BookingFlow — step label responsive */
+.sf-step-label { display: block; }
+@media (max-width: 479px) { .sf-step-label { display: none; } }
