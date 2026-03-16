@@ -180,6 +180,22 @@ export function Contact({ config }: ContactProps) {
           <a href="#" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Política de Privacidade</a>
           {' '}· Desenvolvido com 💜 pelo SiteFlow
         </p>
+        <a
+          href={`/${config.slug}/painel`}
+          style={{
+            display: 'inline-block',
+            marginTop: '0.75rem',
+            fontSize: '0.7rem',
+            color: 'rgba(255,255,255,0.15)',
+            textDecoration: 'none',
+            letterSpacing: '0.05em',
+            transition: 'color 0.3s',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.4)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.15)' }}
+        >
+          acesso profissional
+        </a>
       </footer>
     </>
   )
