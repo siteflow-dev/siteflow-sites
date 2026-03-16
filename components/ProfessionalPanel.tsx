@@ -237,8 +237,7 @@ function Dashboard({ clientId, professionalName, isAdmin, professionalId, onLogo
         .from('appointments')
         .select('id, client_name, client_phone, date, time, status, notes, services(name, emoji), professionals(name, initials)')
         .eq('client_id', clientId)
-        .order('date', { ascending: true })
-        .order('time', { ascending: true })
+        .order('created_at', { ascending: true })
 
       // Admin vê todos, profissional vê só os seus
       if (!isAdmin && professionalId) {
@@ -378,10 +377,46 @@ function Dashboard({ clientId, professionalName, isAdmin, professionalId, onLogo
               {filter === 'hoje' ? 'Nenhum agendamento para hoje' : filter === 'amanha' ? 'Nenhum agendamento para amanhã' : filter === 'pendentes' ? 'Nenhum agendamento pendente' : 'Nenhum agendamento encontrado'}
             </div>
           </div>
+        ) : isAdmin ? (
+          // Admin: agrupado por profissional
+          (() => {
+            const groups: Record<string, { name: string; initials: string; items: Appointment[] }> = {}
+            appointments.forEach(a => {
+              const key = (a.professionals as any)?.name || 'Sem profissional'
+              const initials = (a.professionals as any)?.initials || '?'
+              if (!groups[key]) groups[key] = { name: key, initials, items: [] }
+              groups[key].items.push(a)
+            })
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {Object.entries(groups).map(([profName, group]) => (
+                  <div key={profName}>
+                    {/* Separador por profissional */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#7C3AED,#C77DBE)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'white', flexShrink: 0 }}>
+                        {group.initials}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>{group.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-on-dark-muted)' }}>{group.items.length} agendamento{group.items.length > 1 ? 's' : ''}</div>
+                      </div>
+                      <div style={{ height: '1px', flex: 1, background: 'rgba(212,175,138,0.15)' }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingLeft: '0.5rem' }}>
+                      {group.items.map(appt => (
+                        <AppointmentCard key={appt.id} appt={appt} onUpdate={updateStatus} showProfessional={false} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()
         ) : (
+          // Profissional: lista simples
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {appointments.map(appt => (
-              <AppointmentCard key={appt.id} appt={appt} onUpdate={updateStatus} showProfessional={isAdmin} />
+              <AppointmentCard key={appt.id} appt={appt} onUpdate={updateStatus} showProfessional={false} />
             ))}
           </div>
         )}
