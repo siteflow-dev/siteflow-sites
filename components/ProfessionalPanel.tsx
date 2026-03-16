@@ -14,6 +14,7 @@ interface Appointment {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   notes: string | null
   services?: { name: string; emoji: string } | null
+  professionals?: { name: string; initials: string } | null
 }
 
 interface ProfessionalPanelProps {
@@ -51,7 +52,7 @@ const STATUS_COLOR: Record<string, { bg: string; color: string; border: string }
 
 // ─── TELA DE LOGIN ────────────────────────────────────────────────────────────
 
-function LoginScreen({ onLogin, clientId }: { onLogin: (name: string) => void; clientId: string }) {
+function LoginScreen({ onLogin, clientId }: { onLogin: (name: string, isAdmin: boolean, profId: string) => void; clientId: string }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -72,7 +73,7 @@ function LoginScreen({ onLogin, clientId }: { onLogin: (name: string) => void; c
       // Verificar se a profissional pertence a este cliente
       const { data: session } = await sb
         .from('professional_sessions')
-        .select('professionals(name)')
+        .select('professionals(name), is_admin, professional_id')
         .eq('auth_user_id', data.user?.id)
         .eq('client_id', clientId)
         .eq('active', true)
@@ -81,7 +82,7 @@ function LoginScreen({ onLogin, clientId }: { onLogin: (name: string) => void; c
       if (!session) throw new Error('Acesso não autorizado para este salão')
 
       const name = (session.professionals as any)?.name || 'Profissional'
-      onLogin(name)
+      onLogin(name, (session as any).is_admin === true, (session as any).professional_id)
     } catch (e: any) {
       setError(e.message === 'Invalid login credentials'
         ? 'E-mail ou senha incorretos'
@@ -148,7 +149,7 @@ function LoginScreen({ onLogin, clientId }: { onLogin: (name: string) => void; c
 
 // ─── CARD DE AGENDAMENTO ─────────────────────────────────────────────────────
 
-function AppointmentCard({ appt, onUpdate }: { appt: Appointment; onUpdate: (id: string, status: string) => void }) {
+function AppointmentCard({ appt, onUpdate, showProfessional }: { appt: Appointment; onUpdate: (id: string, status: string) => void; showProfessional?: boolean }) {
   const st = STATUS_COLOR[appt.status] || STATUS_COLOR.pending
   const isPast = appt.date < today()
 
@@ -160,6 +161,11 @@ function AppointmentCard({ appt, onUpdate }: { appt: Appointment; onUpdate: (id:
           <div style={{ fontSize: '0.8rem', color: 'var(--text-on-dark-muted)', marginTop: '0.15rem' }}>
             📅 {formatDate(appt.date)} · {appt.time.substring(0,5)}
           </div>
+          {showProfessional && appt.professionals && (
+            <div style={{ fontSize: '0.75rem', color: 'var(--accent)', marginTop: '0.15rem' }}>
+              👩 {appt.professionals.name}
+            </div>
+          )}
         </div>
         <span style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}`, fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '999px', flexShrink: 0 }}>
           {STATUS_LABEL[appt.status]}
@@ -214,7 +220,7 @@ function AppointmentCard({ appt, onUpdate }: { appt: Appointment; onUpdate: (id:
 
 // ─── DASHBOARD PRINCIPAL ─────────────────────────────────────────────────────
 
-function Dashboard({ clientId, professionalName, onLogout }: { clientId: string; professionalName: string; onLogout: () => void }) {
+function Dashboard({ clientId, professionalName, isAdmin, professionalId, onLogout }: { clientId: string; professionalName: string; isAdmin: boolean; professionalId: string; onLogout: () => void }) {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [filter, setFilter] = useState<'hoje' | 'amanha' | 'todos' | 'pendentes'>('hoje')
   const [loading, setLoading] = useState(true)
@@ -227,23 +233,17 @@ function Dashboard({ clientId, professionalName, onLogout }: { clientId: string;
       const { data: user } = await sb.auth.getUser()
       if (!user.user) return
 
-      const { data: session } = await sb
-        .from('professional_sessions')
-        .select('professional_id')
-        .eq('auth_user_id', user.user.id)
-        .eq('client_id', clientId)
-        .eq('active', true)
-        .single()
-
-      if (!session) return
-
       let query = sb
         .from('appointments')
-        .select('id, client_name, client_phone, date, time, status, notes, services(name, emoji)')
+        .select('id, client_name, client_phone, date, time, status, notes, services(name, emoji), professionals(name, initials)')
         .eq('client_id', clientId)
-        .eq('professional_id', session.professional_id)
         .order('date', { ascending: true })
         .order('time', { ascending: true })
+
+      // Admin vê todos, profissional vê só os seus
+      if (!isAdmin && professionalId) {
+        query = query.eq('professional_id', professionalId)
+      }
 
       if (filter === 'hoje') query = query.eq('date', today())
       else if (filter === 'amanha') query = query.eq('date', tomorrow())
@@ -254,7 +254,7 @@ function Dashboard({ clientId, professionalName, onLogout }: { clientId: string;
     } finally {
       setLoading(false)
     }
-  }, [clientId, filter])
+  }, [clientId, filter, isAdmin, professionalId])
 
   useEffect(() => {
     fetchAppointments()
@@ -307,10 +307,11 @@ function Dashboard({ clientId, professionalName, onLogout }: { clientId: string;
       <div style={{ background: 'rgba(13,13,13,0.95)', borderBottom: '1px solid rgba(212,175,138,0.15)', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
         <div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-on-dark)' }}>
-            Olá, {professionalName.split(' ')[0]} ✦
+            Olá, {professionalName.split(' ')[0]} {isAdmin ? '👑' : '✦'}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-on-dark-muted)' }}>
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {isAdmin && <span style={{ marginLeft: '0.5rem', color: 'var(--accent)', fontWeight: 600 }}>· Admin</span>}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -380,7 +381,7 @@ function Dashboard({ clientId, professionalName, onLogout }: { clientId: string;
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {appointments.map(appt => (
-              <AppointmentCard key={appt.id} appt={appt} onUpdate={updateStatus} />
+              <AppointmentCard key={appt.id} appt={appt} onUpdate={updateStatus} showProfessional={isAdmin} />
             ))}
           </div>
         )}
@@ -394,6 +395,8 @@ function Dashboard({ clientId, professionalName, onLogout }: { clientId: string;
 export function ProfessionalPanel({ clientId, slug }: ProfessionalPanelProps) {
   const [professionalName, setProfessionalName] = useState<string | null>(null)
   const [checking, setChecking] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [professionalId, setProfessionalId] = useState('')
 
   // Verificar sessão existente
   useEffect(() => {
@@ -405,7 +408,7 @@ export function ProfessionalPanel({ clientId, slug }: ProfessionalPanelProps) {
 
         const { data } = await sb
           .from('professional_sessions')
-          .select('professionals(name)')
+          .select('professionals(name), is_admin, professional_id')
           .eq('auth_user_id', user.id)
           .eq('client_id', clientId)
           .eq('active', true)
@@ -413,6 +416,8 @@ export function ProfessionalPanel({ clientId, slug }: ProfessionalPanelProps) {
 
         if (data) {
           setProfessionalName((data.professionals as any)?.name || 'Profissional')
+          setIsAdmin((data as any).is_admin === true)
+          setProfessionalId((data as any).professional_id || '')
         }
       } finally {
         setChecking(false)
@@ -424,6 +429,8 @@ export function ProfessionalPanel({ clientId, slug }: ProfessionalPanelProps) {
   async function handleLogout() {
     await getSupabaseClient().auth.signOut()
     setProfessionalName(null)
+    setIsAdmin(false)
+    setProfessionalId('')
   }
 
   if (checking) {
@@ -435,8 +442,12 @@ export function ProfessionalPanel({ clientId, slug }: ProfessionalPanelProps) {
   }
 
   if (!professionalName) {
-    return <LoginScreen onLogin={setProfessionalName} clientId={clientId} />
+    return <LoginScreen onLogin={(name, admin, profId) => {
+      setProfessionalName(name)
+      setIsAdmin(admin)
+      setProfessionalId(profId)
+    }} clientId={clientId} />
   }
 
-  return <Dashboard clientId={clientId} professionalName={professionalName} onLogout={handleLogout} />
+  return <Dashboard clientId={clientId} professionalName={professionalName} isAdmin={isAdmin} professionalId={professionalId} onLogout={handleLogout} />
 }
